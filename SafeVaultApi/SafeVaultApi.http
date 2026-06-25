@@ -1,6 +1,35 @@
 @SafeVaultApi_HostAddress = http://localhost:5278
 
-GET {{SafeVaultApi_HostAddress}}/weatherforecast/
+### Valid Request
+POST {{SafeVaultApi_HostAddress}}/api/users/
 Accept: application/json
+Content-Type: application/json
 
-###
+{
+    "userName":"userName",
+    "email":"manager.12k@gmail.com"
+}
+
+##
+
+
+### Invalid request
+POST {{SafeVaultApi_HostAddress}}/api/users/
+Accept: application/json
+Content-Type: application/json
+
+{
+    "userName":"'admin' OR 1=1",
+    "email":"pamithagk@gmail.com"
+}
+
+
+### Invalid request
+POST {{SafeVaultApi_HostAddress}}/api/users/
+Accept: application/json
+Content-Type: application/json
+
+{
+    "userName":"<script>alert(1)</script>",
+    "email":"pamithagk@gmail.com"
+}

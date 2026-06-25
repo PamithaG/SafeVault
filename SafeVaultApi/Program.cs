@@ -1,8 +1,29 @@
+using SafeVaultApi.Repositores;
+using SafeVaultApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddControllers();
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
+
+// if (builder.Environment.IsDevelopment())
+// {
+//     builder.Services.AddCors(options =>
+//     {
+//         options.AddPolicy("AllowAnyOrigin",
+//         builder => builder
+//         .AllowAnyOrigin()
+//         .AllowAnyMethod()
+//         .AllowAnyHeader());
+//     });
+// }
 
 var app = builder.Build();
 
@@ -15,7 +36,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-
+app.MapControllers();
 
 app.Run();
 
