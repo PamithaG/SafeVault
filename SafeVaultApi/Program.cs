@@ -13,17 +13,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
-// if (builder.Environment.IsDevelopment())
-// {
-//     builder.Services.AddCors(options =>
-//     {
-//         options.AddPolicy("AllowAnyOrigin",
-//         builder => builder
-//         .AllowAnyOrigin()
-//         .AllowAnyMethod()
-//         .AllowAnyHeader());
-//     });
-// }
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAnyOrigin",
+        builder => builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+    });
+}
 
 var app = builder.Build();
 
@@ -35,6 +35,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("AllowAnyOrigin");
+}
 
 app.MapControllers();
 
