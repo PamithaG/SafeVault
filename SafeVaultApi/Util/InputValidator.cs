@@ -17,6 +17,17 @@ public static class InputValidator
         return input.Trim();
     }
 
+    public static bool IsValidInput(string input, string allowedSpecialCharacters = "")
+    {
+        if (string.IsNullOrEmpty(input))
+            return false;
+
+        var validCharacters = allowedSpecialCharacters.ToHashSet();
+
+        return input.All(c => char.IsLetterOrDigit(c) || validCharacters.Contains(c));
+    }
+
+
     public static bool IsValidUsername(string username)
     {
         return Regex.IsMatch(username, @"^[a-zA-Z0-9_-]{3,50}$");

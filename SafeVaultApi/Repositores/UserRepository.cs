@@ -16,50 +16,35 @@ public class UserRepository
     {
         try
         {
-
-            /*  SQL with SQL Injection threat
-            const string sql = $"
-                INSERT INTO Users
-                (
-                    Username,
-                    Email
-                ) VALUES
-                (
-                    '{user.Username}',
-                    '{user.Email}'
-                )
-            */
-
-            // Prevent SQL Injection Using Parameterized Queries
             const string sql = @"
             INSERT INTO Users
             (
                 Username,
-                Email
+                Email,
+                PasswordHash,
+                Role
             )
             VALUES
             (
-                @Username, 
-                @Email
+                @Username,
+                @Email,
+                @PasswordHash,
+                @Role
             );
 
             SELECT LAST_INSERT_ID();
             ";
 
-            /* If we use EF Core it will automatically prevent SQL Injection using Parameterized Queries */
-
             await using var connection = new MySqlConnection(_connectionString);
-
             await connection.OpenAsync();
 
             await using var command = new MySqlCommand(sql, connection);
-
             command.Parameters.AddWithValue("@Username", user.Username);
-
             command.Parameters.AddWithValue("@Email", user.Email);
+            command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
+            command.Parameters.AddWithValue("@Role", user.Role);
 
             var result = await command.ExecuteScalarAsync();
-
             return Convert.ToInt32(result);
         }
         catch (MySqlException e)
@@ -77,32 +62,34 @@ public class UserRepository
     public async Task<User?> GetUserAsync(int id)
     {
         const string sql = @"
-            SELECT *
+            SELECT UserID,
+                   Username,
+                   Email,
+                   PasswordHash,
+                   Role
             FROM Users
             WHERE UserID = @Id
         ";
 
         await using var connection = new MySqlConnection(_connectionString);
-
         await connection.OpenAsync();
 
         await using var command = new MySqlCommand(sql, connection);
-
         command.Parameters.AddWithValue("@Id", id);
 
-        await using var reader =
-            await command.ExecuteReaderAsync();
+        await using var reader = await command.ExecuteReaderAsync();
 
         return await reader.ReadAsync()
             ? new User
             {
-                UserID = reader.GetInt32("Id"),
+                UserID = reader.GetInt32("UserID"),
                 Username = reader.GetString("Username"),
-                Email = reader.GetString("Email")
+                Email = reader.GetString("Email"),
+                PasswordHash = reader.GetString("PasswordHash"),
+                Role = reader.GetString("Role")
             }
             : null;
     }
-
 
     public async Task<User?> GetUserByUsernameAsync(
     string username)
@@ -110,7 +97,9 @@ public class UserRepository
         const string sql = @"
         SELECT UserID,
                Username,
-               Email
+               Email,
+               PasswordHash,
+               Role
         FROM Users
         WHERE Username = @Username";
 
@@ -135,7 +124,9 @@ public class UserRepository
         {
             UserID = reader.GetInt32(0),
             Username = reader.GetString(1),
-            Email = reader.GetString(2)
+            Email = reader.GetString(2),
+            PasswordHash = reader.GetString(3),
+            Role = reader.GetString(4)
         };
     }
 }

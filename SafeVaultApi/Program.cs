@@ -1,5 +1,9 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using SafeVaultApi.Repositores;
 using SafeVaultApi.Services;
+using SafeVaultApi.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,21 +13,50 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(); // Adds the Swagger generator
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
-if (builder.Environment.IsDevelopment())
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
+
+builder.Services.AddAuthentication(options =>
 {
-    builder.Services.AddCors(options =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.AddPolicy("AllowAnyOrigin",
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyOrigin",
         builder => builder
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader());
-    });
-}
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 var app = builder.Build();
 
@@ -31,14 +64,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors("AllowAnyOrigin");
-}
+app.UseCors("AllowAnyOrigin");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -1,5 +1,8 @@
 @SafeVaultApi_HostAddress = http://localhost:5278
 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJQYW1pdGhhRyIsImp0aSI6IjBkMDI4MDc5LTAxM2EtNDkwOS1hOTllLTAwNmJhOGRjNTkwNCIsInVzZXJuYW1lIjoiUGFtaXRoYUciLCJyb2xlIjoiQWRtaW4iLCJ1c2VySWQiOiIxIiwiZW1haWwiOiJwYW1pdGhhQGV4YW1wbGUuY29tIiwiZXhwIjoxNzgyNDQ0NDYxLCJpc3MiOiJVc2VyTWFuYWdlbWVudEFwaUlzc3VlciIsImF1ZCI6IlVzZXJNYW5hZ2VtZW50QXBpQXVkaWVuY2UifQ.NjRN1gwu54YVKyet6NMQNg9ZmvV5Hz63OzeT8nC0dtg
+
+
 ### Valid Request
 POST {{SafeVaultApi_HostAddress}}/api/users/
 Accept: application/json
@@ -33,3 +36,33 @@ Content-Type: application/json
     "userName":"<script>alert(1)</script>",
     "email":"pamithagk@gmail.com"
 }
+
+
+
+### Register User
+POST {{SafeVaultApi_HostAddress}}/api/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "AdminUser",
+  "email": "admin.user@example.com",
+  "password": "Password@123",
+  "confirmPassword": "Password@123",
+  "role": "Admin"
+}
+
+### Log in 
+POST {{SafeVaultApi_HostAddress}}/api/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "username":"adminUser",
+    "password":"Password@123"
+}
+
+### Admin Only route
+GET {{SafeVaultApi_HostAddress}}/api/users/admin
+Accept: application/json
+Authorization: Bearer {{token}}

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
 using SafeVaultApi.DTOs;
@@ -21,6 +22,7 @@ public class UsersController : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
         try
         {
             int id = await _userService.CreateUserAsync(request);
@@ -37,5 +39,12 @@ public class UsersController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpGet("admin")]
+    [Authorize(Policy = "AdminOnly")]
+    public IActionResult AdminDashboard()
+    {
+        return Ok(new { Message = "Welcome to the Admin Dashboard" });
     }
 }
