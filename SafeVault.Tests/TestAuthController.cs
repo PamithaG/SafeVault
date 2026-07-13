@@ -129,6 +129,14 @@ public class TestAuthController
     }
 
     [Test]
+    public void FAIL_TEST_Login_WithEmptyUsername_FailsValidation()
+    {
+        var request = new LoginDto("testuser", "SomePassword123");
+
+        Assert.That(request.Username, Is.Empty);
+    }
+
+    [Test]
     public void Login_WithEmptyPassword_FailsValidation()
     {
         var request = new LoginDto("testuser", "");
@@ -157,7 +165,7 @@ public class TestAuthController
 
         foreach (var field in requiredFields)
         {
-            Assert.That(properties.Any(p => p.Name == field), 
+            Assert.That(properties.Any(p => p.Name == field),
                 $"Missing required field: {field}");
         }
     }
