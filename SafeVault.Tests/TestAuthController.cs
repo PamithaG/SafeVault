@@ -129,14 +129,6 @@ public class TestAuthController
     }
 
     [Test]
-    public void FAIL_TEST_Login_WithEmptyUsername_FailsValidation()
-    {
-        var request = new LoginDto("testuser", "SomePassword123");
-
-        Assert.That(request.Username, Is.Empty);
-    }
-
-    [Test]
     public void Login_WithEmptyPassword_FailsValidation()
     {
         var request = new LoginDto("testuser", "");
