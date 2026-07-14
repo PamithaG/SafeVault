@@ -5,6 +5,8 @@ using SafeVaultApi.Repositores;
 using SafeVaultApi.Services;
 using SafeVaultApi.DTOs;
 
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -22,14 +24,15 @@ Console.WriteLine("_--------------------- SafeVaultApi ---------------------_");
 Console.WriteLine("!!! Starting SafeVaultApi");
 
 
+JwtSettings jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+string JwtKey = Environment.GetEnvironmentVariable("JWT_KEY")!;
+Console.WriteLine($"_JwtKey: {JwtKey}");
+Console.WriteLine($"key from jwtSettings: {jwtSettings.Key}");
+
+Console.WriteLine($"------------------------------------------------------");
+// jwtSettings.Key = JwtKey;
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
-var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
-
-Console.WriteLine($"::::::::JWT Settings Key: {Encoding.UTF8.GetBytes(jwtSettings.Key)}");
-Console.WriteLine("_--------------------- --------------------- ---------------------_");
-
+var keyBytes = Encoding.UTF8.GetBytes(JwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -69,12 +72,12 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+// }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAnyOrigin");
