@@ -8,58 +8,78 @@ pool:
 
 variables:
   buildConfiguration: "Release"
-  system.debug: 'false'
+  solutionFile: "**/SafeVault.slnx"
+  azureServiceConnection: "free-credit-sub"
+  webAppName: "SafeVault-api"
+  apiProjectFile: "**/SafeVaultApi.csproj"
 
-steps:
-  - task: UseDotNet@2
-    displayName: 'Install .NET 10 SDK'
-    inputs:
-      packageType: 'sdk'
-      version: '10.0.x' # Adjust with the specific .NET 10 version
-      includePreviewVersions: true
+stages:
+  - stage: Build
+    displayName: "Build and Package API"
+    jobs:
+      - job: BuildJob
+        steps:
+          - task: UseDotNet@2
+            displayName: "Install .NET 10 SDK"
+            inputs:
+              packageType: "sdk"
+              version: "10.0.x"
+              includePreviewVersions: true
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Restore NuGet Packages'
-    inputs:
-      command: 'restore'
-      projects: '**/*.slnx'
+          - task: DotNetCoreCLI@2
+            displayName: "Restore NuGet Packages"
+            inputs:
+              command: "restore"
+              projects: "$(solutionFile)"
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Build project'
-    inputs:
-      command: 'build'
-      projects: '**/*.slnx'
-      arguments: '--configuration $(buildConfiguration)'
+          - task: DotNetCoreCLI@2
+            displayName: "Build Project"
+            inputs:
+              command: "build"
+              projects: "$(solutionFile)"
+              arguments: "--configuration $(buildConfiguration)"
+          
+          - task: DotNetCoreCLI@2
+            displayName: "Test Project"
+            inputs:
+              command: "test"
+              projects: '**/*[Tt]ests*.csproj'
+              arguments: "--configuration $(buildConfiguration)"
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Run Unit tests'
-    inputs:
-      command: 'test'
-      projects: '**/*[Tt]ests*.csproj'
-      arguments: '--configuration $(buildConfiguration)'
+          - task: DotNetCoreCLI@2
+            displayName: "Publish API"
+            inputs:
+              command: "publish"
+              projects: "$(apiProjectFile)"
+              arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)"
+              zipAfterPublish: true
 
-  # - task: DotNetCoreCLI@2
-  #   displayName: 'Run Integration tests'
-  #   inputs:
-  #     command: 'test'
-  #     projects: '**/*[Ii]ntegrationTests*.csproj'
-  #     arguments: '--configuration $(buildConfiguration)'
+          # Uploads the zip folder so the Deploy stage can download it
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Artifact"
+            inputs:
+              pathToPublish: "$(Build.ArtifactStagingDirectory)"
+              artifactName: "drop"
+              publishLocation: "Container"
 
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Publish API'
-    inputs:
-      command: 'publish'
-      projects: '**/SafeVaultApi.csproj' 
-      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-      zipAfterPublish: true
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
-
-  
-
+  - stage: Deploy
+    displayName: "Deploy to Azure Web App"
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployJob
+        environment: "Production" # Creates an environment tracking log in DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                # Automatically downloads the 'drop' artifact from the build stage
+                - task: AzureRmWebAppDeployment@4
+                  displayName: "Azure App Service Deploy"
+                  inputs:
+                    ConnectionType: "AzureRM"
+                    azureSubscription: "$(azureServiceConnection)"
+                    appType: "webAppLinux" # Use webApp for Windows
+                    WebAppName: "$(webAppName)"
+                    package: "$(Pipeline.Workspace)/drop/**/*.zip"
+                    RuntimeStack: "DOTNET|10.0" # Tells Azure to run your app on .NET 10
