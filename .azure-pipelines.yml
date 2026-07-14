@@ -10,7 +10,7 @@ variables:
   buildConfiguration: "Release"
 
 steps:
-  - task: UseDotNet@4 
+  - task: UseDotNet@2
     inputs:
       packageType: "sdk"
       version: "10.0.x" 
