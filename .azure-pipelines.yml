@@ -22,13 +22,13 @@ steps:
     displayName: 'Restore NuGet Packages'
     inputs:
       command: 'restore'
-      projects: '**/*.sln'
+      projects: '**/*.slnx'
 
   - task: DotNetCoreCLI@2
     displayName: 'Build project'
     inputs:
       command: 'build'
-      projects: '**/*.sln'
+      projects: '**/*.slnx'
       arguments: '--configuration $(buildConfiguration)'
 
   - task: DotNetCoreCLI@2
