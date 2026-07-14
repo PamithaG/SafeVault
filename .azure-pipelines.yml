@@ -8,24 +8,58 @@ pool:
 
 variables:
   buildConfiguration: "Release"
+  system.debug: 'false'
 
 steps:
   - task: UseDotNet@2
+    displayName: 'Install .NET 10 SDK'
     inputs:
-      packageType: "sdk"
-      version: "10.0.x" 
+      packageType: 'sdk'
+      version: '10.0.x' # Adjust with the specific .NET 10 version
+      includePreviewVersions: true
 
-  - script: dotnet restore
-    displayName: "Restore dependencies"
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore NuGet Packages'
+    inputs:
+      command: 'restore'
+      projects: '**/*.sln'
 
-  - script: dotnet build --configuration $(buildConfiguration) --no-restore
-    displayName: "Build project"
+  - task: DotNetCoreCLI@2
+    displayName: 'Build project'
+    inputs:
+      command: 'build'
+      projects: '**/*.sln'
+      arguments: '--configuration $(buildConfiguration)'
 
-  - script: dotnet test --no-build --verbosity normal
-    displayName: "Run tests"
+  - task: DotNetCoreCLI@2
+    displayName: 'Run Unit tests'
+    inputs:
+      command: 'test'
+      projects: '**/*[Tt]ests*.csproj'
+      arguments: '--configuration $(buildConfiguration)'
+
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Run Integration tests'
+  #   inputs:
+  #     command: 'test'
+  #     projects: '**/*[Ii]ntegrationTests*.csproj'
+  #     arguments: '--configuration $(buildConfiguration)'
+
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish API'
+    inputs:
+      command: 'publish'
+      projects: '**/SafeVaultApi.csproj' 
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+      zipAfterPublish: true
 
   - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: drop'
     inputs:
-      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
-      ArtifactName: "drop"
-      publishLocation: "Container"
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
+
+  
+
