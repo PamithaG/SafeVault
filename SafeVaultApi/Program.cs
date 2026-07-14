@@ -20,8 +20,6 @@ builder.Services.AddScoped<UserService>();
 
 Console.WriteLine("_--------------------- SafeVaultApi ---------------------_");
 Console.WriteLine("!!! Starting SafeVaultApi");
-Console.WriteLine($"::::::::JWT Settings: {builder.Configuration.GetSection("JwtSettings")}");
-Console.WriteLine("_--------------------- --------------------- ---------------------_");
 
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
@@ -29,6 +27,8 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
 
+Console.WriteLine($"::::::::JWT Settings Key: {Encoding.UTF8.GetBytes(jwtSettings.Key)}");
+Console.WriteLine("_--------------------- --------------------- ---------------------_");
 
 
 builder.Services.AddAuthentication(options =>
