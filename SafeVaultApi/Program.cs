@@ -18,10 +18,17 @@ builder.Services.AddSwaggerGen(); // Adds the Swagger generator
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
+Console.WriteLine("_--------------------- SafeVaultApi ---------------------_");
+Console.WriteLine("Starting SafeVaultApi");
+Console.WriteLine($"JWT Settings: {builder.Configuration.GetSection("JwtSettings").Value}");
+
+
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 var keyBytes = Encoding.UTF8.GetBytes(jwtSettings.Key);
+
+
 
 builder.Services.AddAuthentication(options =>
 {
