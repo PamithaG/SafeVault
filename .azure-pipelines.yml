@@ -1,0 +1,31 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  buildConfiguration: "Release"
+
+steps:
+  - task: UseDotNet@4 
+    inputs:
+      packageType: "sdk"
+      version: "10.0.x" 
+
+  - script: dotnet restore
+    displayName: "Restore dependencies"
+
+  - script: dotnet build --configuration $(buildConfiguration) --no-restore
+    displayName: "Build project"
+
+  - script: dotnet test --no-build --verbosity normal
+    displayName: "Run tests"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      ArtifactName: "drop"
+      publishLocation: "Container"
