@@ -19,8 +19,9 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
 Console.WriteLine("_--------------------- SafeVaultApi ---------------------_");
-Console.WriteLine("Starting SafeVaultApi");
-Console.WriteLine($"JWT Settings: {builder.Configuration.GetSection("JwtSettings").Value}");
+Console.WriteLine("!!! Starting SafeVaultApi");
+Console.WriteLine($"::::::::JWT Settings: {builder.Configuration.GetSection("JwtSettings")}");
+Console.WriteLine("_--------------------- --------------------- ---------------------_");
 
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
